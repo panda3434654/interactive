@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Симулятор Антифрод-Аналитика</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e1a;
+            color: #fff;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow-x: hidden;
+        }
+
+        /* ===== START SCREEN ===== */
+        .start-screen {
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 24px;
+            text-align: center;
+            background: linear-gradient(180deg, #0a0e1a 0%, #111827 100%);
+        }
+
+        .start-icon {
+            font-size: 72px;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 20px rgba(0, 230, 118, 0.3));
+        }
+
+        .start-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #00e676 0%, #42a5f5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .start-subtitle {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 24px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .start-description {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.75);
+            line-height: 1.6;
+            max-width: 480px;
+            margin-bottom: 40px;
+            padding: 0 10px;
+        }
+
+        .start-description strong {
+            color: #fff;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #00e676 0%, #00c853 100%);
+            color: #0a0e1a;
+            border: none;
+            padding: 18px 48px;
+            font-size: 17px;
+            font-weight: 700;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(0, 230, 118, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .btn-start:hover, .btn-start:active {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(0, 230, 118, 0.4);
+        }
+
+        /* ===== GAME SCREEN ===== */
+        .game-screen {
+            display: none;
+            min-height: 100vh;
+            min-height: 100dvh;
+            flex-direction: column;
+        }
+
+        .game-screen.active {
+            display: flex;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background: rgba(10, 14, 26, 0.95);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .logo-dot {
+            width: 12px;
+            height: 12px;
+            background: #00e676;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0, 230, 118, 0.6);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .stat-value.score {
+            color: #00e676;
+        }
+
+        .stat-value.reputation {
+            color: #42a5f5;
+        }
+
+        .stat-value.reputation.danger {
+            color: #f44336;
+        }
+
+        .stat-value.reputation.warning {
+            color: #ff9800;
+        }
+
+        .progress-info {
+            text-align: center;
+            padding: 10px 20px 4px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .progress-info span {
+            color: #fff;
+        }
+
+        .chart-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px 20px;
+            flex: 0 0 auto;
+        }
+
+        .radar-chart {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            max-width: 90vw;
+            max-height: 90vw;
+        }
+
+        .radar-chart canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .axis-label {
+            position: absolute;
+            font-size: 10px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        .axis-label.top {
+            top: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .axis-label.right {
+            right: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .axis-label.left {
+            left: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .info-panel {
+            background: rgba(30, 35, 50, 0.85);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 0 16px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            flex: 1 0 auto;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .info-row:last-of-type {
+            margin-bottom: 0;
+        }
+
+        .info-group {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .device-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 8px 14px;
+            border-radius: 24px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .device-badge svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .location, .speed {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .location svg {
+            width: 16px;
+            height: 16px;
+            color: #42a5f5;
+            flex-shrink: 0;
+        }
+
+        .speed svg {
+            width: 16px;
+            height: 16px;
+            color: #ff9800;
+            flex-shrink: 0;
+        }
+
+        .alert-box {
+            background: rgba(66, 165, 245, 0.1);
+            border: 1px solid rgba(66, 165, 245, 0.25);
+            border-radius: 12px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .alert-box.danger {
+            background: rgba(244, 67, 54, 0.1);
+            border-color: rgba(244, 67, 54, 0.25);
+        }
+
+        .alert-box.success {
+            background: rgba(0, 230, 118, 0.1);
+            border-color: rgba(0, 230, 118, 0.25);
+        }
+
+        .alert-icon {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .alert-text {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.5;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            padding: 0 16px 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px 20px;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-allow {
+            background: rgba(0, 230, 118, 0.15);
+            color: #00e676;
+            border: 1px solid rgba(0, 230, 118, 0.3);
+        }
+
+        .btn-allow:active {
+            background: rgba(0, 230, 118, 0.25);
+            transform: scale(0.97);
+        }
+
+        .btn-block {
+            background: rgba(244, 67, 54, 0.15);
+            color: #f44336;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+
+        .btn-block:active {
+            background: rgba(244, 67, 54, 0.25);
+            transform: scale(0.97);
+        }
+
+        /* ===== RESULT OVERLAY ===== */
+        .result-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .result-overlay.active {
+            display: flex;
+        }
+
+        .result-card {
+            background: #1a1f35;
+            border-radius: 24px;
+            padding: 40px 28px;
+            text-align: center;
+            max-width: 420px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .result-card h2 {
+            font-size: 28px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .result-card p {
+            color: rgba(255, 255, 255, 0.65);
+            margin-bottom: 28px;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .result-correct {
+            color: #00e676;
+        }
+
+        .result-wrong {
+            color: #f44336;
+        }
+
+        .btn-continue {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 16px 48px;
+            font-size: 17px;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .btn-continue:active {
+            background: rgba(255, 255, 255, 0.18);
+            transform: scale(0.97);
+        }
+
+        .btn-restart {
+            background: linear-gradient(135deg, #00e676 0%, #00c853 100%);
+            color: #0a0e1a;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-restart:active {
+            transform: scale(0.97);
+        }
+
+        /* ===== DESKTOP ENHANCEMENTS ===== */
+        @media (min-width: 768px) {
+            .radar-chart {
+                width: 380px;
+                height: 380px;
+            }
+
+            .info-panel {
+                padding: 28px 36px;
+                margin: 0 40px 24px;
+            }
+
+            .actions {
+                padding: 0 40px 32px;
+                max-width: 600px;
+                margin: 0 auto;
+                width: 100%;
+            }
+
+            .header {
+                padding: 20px 40px;
+            }
+
+            .start-title {
+                font-size: 36px;
+            }
+
+            .start-description {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== START SCREEN ===== -->
+    <div class="start-screen" id="startScreen">
+        <div class="start-icon">🕵️‍♂️</div>
+        <div class="start-title">Симулятор Антифрод-Аналитика</div>
+        <div class="start-subtitle">Data Mining Game</div>
+        <div class="start-description">
+            Добро пожаловать в команду <strong>Data Mining</strong>! Твоя задача — анализировать поступающие транзакции.
+            Отличи честных клиентов от хитрых мошенников. За каждую ошибку ты теряешь очки репутации работника.
+        </div>
+        <button class="btn-start" onclick="startGame()">Начать симуляцию</button>
+    </div>
+
+    <!-- ===== GAME SCREEN ===== -->
+    <div class="game-screen" id="gameScreen">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-dot"></div>
+                ANTIFRAUD SHIELD v4.2
+            </div>
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-label">Очки</div>
+                    <div class="stat-value score" id="score">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Репутация</div>
+                    <div class="stat-value reputation" id="reputation">100%</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="progress-info" id="progressInfo">Анализ транзакции <span>1/6</span></div>
+
+        <div class="chart-container">
+            <div class="radar-chart">
+                <canvas id="radarCanvas" width="400" height="400"></canvas>
+                <div class="axis-label top">СУММА</div>
+                <div class="axis-label right">СКОРОСТЬ ВВОДА</div>
+                <div class="axis-label left">БЕЗОПАСНАЯ ЗОНА</div>
+            </div>
+        </div>
+
+        <div class="info-panel">
+            <div class="info-row">
+                <div class="info-group">
+                    <div class="info-label">Сумма операции</div>
+                    <div class="info-value" id="amount">12 000 ₽</div>
+                </div>
+                <div class="info-group" style="text-align: right;">
+                    <div class="device-badge" id="device">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                            <line x1="8" y1="21" x2="16" y2="21"></line>
+                            <line x1="12" y1="17" x2="12" y2="21"></line>
+                        </svg>
+                        Xiaomi Redmi Note 12
+                    </div>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-group">
+                    <div class="info-label">Геопозиция запроса</div>
+                    <div class="location" id="location">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        Екатеринбург, Россия
+                    </div>
+                </div>
+                <div class="info-group">
+                    <div class="info-label">Скорость набора данных</div>
+                    <div class="speed" id="speed">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        210 зн/мин
+                    </div>
+                </div>
+            </div>
+            <div class="alert-box" id="alertBox">
+                <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                <div class="alert-text" id="alertText">Небольшая сумма, стандартный смартфон, адекватные биометрические показатели.</div>
+            </div>
+        </div>
+
+        <div class="actions" id="actionsPanel">
+            <button class="btn btn-allow" onclick="makeDecision('allow')">🟢 Пропустить</button>
+            <button class="btn btn-block" onclick="makeDecision('block')">🔴 Заблокировать</button>
+        </div>
+    </div>
+
+    <!-- ===== RESULT OVERLAY ===== -->
+    <div class="result-overlay" id="resultOverlay">
+        <div class="result-card" id="resultCard">
+            <h2 id="resultTitle">✅ Верно!</h2>
+            <p id="resultText">Легитимная транзакция пропущена правильно.</p>
+            <button class="btn-continue" id="continueBtn" onclick="handleContinue()">Продолжить</button>
+        </div>
+    </div>
+
+    <script>
+        const transactions = [
+            {
+                amountDisplay: "12 000 ₽",
+                device: "Xiaomi Redmi Note 12",
+                location: "Екатеринбург, Россия",
+                speedDisplay: "210 зн/мин",
+                alert: "Небольшая сумма, стандартный смартфон, адекватные биометрические показатели.",
+                alertType: "info",
+                isFraud: false,
+                radarValues: { amount: 0.15, speed: 0.25, safety: 0.8 }
+            },
+            {
+                amountDisplay: "450 000 ₽",
+                device: "Emulated Android Device",
+                location: "Калининград, Россия",
+                speedDisplay: "45 зн/мин",
+                alert: "Использование эмулятора устройства обычно указывает на попытку обхода отпечатка браузера.",
+                alertType: "info",
+                isFraud: true,
+                radarValues: { amount: 0.85, speed: 0.1, safety: 0.2 }
+            },
+            {
+                amountDisplay: "95 000 ₽",
+                device: "MacBook Pro (Chrome)",
+                location: "Владивосток, Россия",
+                speedDisplay: "850 зн/мин",
+                alert: "Ввод данных карты занял менее полусекунды. Явное автозаполнение скриптом.",
+                alertType: "info",
+                isFraud: true,
+                radarValues: { amount: 0.5, speed: 0.9, safety: 0.15 }
+            },
+            {
+                amountDisplay: "3 500 ₽",
+                device: "iPhone 14",
+                location: "Москва, Россия",
+                speedDisplay: "180 зн/мин",
+                alert: "Типичная покупка, устройство из доверенного списка, нормальная скорость ввода.",
+                alertType: "info",
+                isFraud: false,
+                radarValues: { amount: 0.1, speed: 0.2, safety: 0.9 }
+            },
+            {
+                amountDisplay: "1 200 000 ₽",
+                device: "Unknown Device",
+                location: "Лагос, Нигерия",
+                speedDisplay: "1200 зн/мин",
+                alert: "Критические показатели: огромная сумма, неизвестное устройство, подозрительная геолокация, бот-скорость ввода.",
+                alertType: "info",
+                isFraud: true,
+                radarValues: { amount: 0.95, speed: 0.95, safety: 0.05 }
+            },
+            {
+                amountDisplay: "28 000 ₽",
+                device: "Samsung Galaxy S23",
+                location: "Санкт-Петербург, Россия",
+                speedDisplay: "150 зн/мин",
+                alert: "Средняя сумма, известное устройство, нормальные показатели.",
+                alertType: "info",
+                isFraud: false,
+                radarValues: { amount: 0.25, speed: 0.18, safety: 0.85 }
+            }
+        ];
+
+        let currentIndex = 0;
+        let score = 0;
+        let reputation = 100;
+        let decisionMade = false;
+        let isFinal = false;
+
+        const canvas = document.getElementById('radarCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameScreen').classList.add('active');
+            loadTransaction(0);
+        }
+
+        function drawRadarChart(values, isFraud) {
+            ctx.clearRect(0, 0, 400, 400);
+
+            const centerX = 200;
+            const centerY = 200;
+            const maxRadius = 150;
+
+            for (let i = 1; i <= 4; i++) {
+                const radius = (maxRadius / 4) * i;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+                ctx.strokeStyle = i === 2 ? 'rgba(0, 230, 118, 0.15)' : 'rgba(255, 255, 255, 0.08)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            const angles = [-Math.PI / 2, 0, Math.PI];
+            angles.forEach(angle => {
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(
+                    centerX + Math.cos(angle) * maxRadius,
+                    centerY + Math.sin(angle) * maxRadius
+                );
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            });
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, maxRadius * 0.35, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(0, 230, 118, 0.2)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            const amountAngle = -Math.PI / 2;
+            const speedAngle = 0;
+            const safetyAngle = Math.PI;
+
+            const x = centerX + (values.amount * Math.cos(amountAngle) + values.speed * Math.cos(speedAngle) + values.safety * Math.cos(safetyAngle)) * maxRadius * 0.5;
+            const y = centerY + (values.amount * Math.sin(amountAngle) + values.speed * Math.sin(speedAngle) + values.safety * Math.sin(safetyAngle)) * maxRadius * 0.5;
+
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(x, y);
+            ctx.strokeStyle = isFraud ? '#f44336' : '#00e676';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+            const pointRadius = 12;
+            ctx.beginPath();
+            ctx.arc(x, y, pointRadius, 0, Math.PI * 2);
+            ctx.fillStyle = isFraud ? 'rgba(244, 67, 54, 0.3)' : 'rgba(0, 230, 118, 0.3)';
+            ctx.fill();
+            ctx.strokeStyle = isFraud ? '#f44336' : '#00e676';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+        }
+
+        function updateReputationDisplay() {
+            const repEl = document.getElementById('reputation');
+            repEl.textContent = reputation + '%';
+            repEl.className = 'stat-value reputation';
+            if (reputation <= 30) repEl.classList.add('danger');
+            else if (reputation <= 60) repEl.classList.add('warning');
+        }
+
+        function loadTransaction(index) {
+            if (index >= transactions.length) {
+                showFinalResult();
+                return;
+            }
+
+            const tx = transactions[index];
+            decisionMade = false;
+            isFinal = false;
+
+            document.getElementById('progressInfo').innerHTML = `Анализ транзакции <span>${index + 1}/${transactions.length}</span>`;
+            document.getElementById('amount').textContent = tx.amountDisplay;
+            document.getElementById('device').innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+                ${tx.device}
+            `;
+            document.getElementById('location').innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                ${tx.location}
+            `;
+            document.getElementById('speed').innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                ${tx.speedDisplay}
+            `;
+
+            const alertBox = document.getElementById('alertBox');
+            alertBox.className = 'alert-box';
+            if (tx.alertType === 'danger') alertBox.classList.add('danger');
+            else if (tx.alertType === 'success') alertBox.classList.add('success');
+            document.getElementById('alertText').textContent = tx.alert;
+
+            drawRadarChart(tx.radarValues, tx.isFraud);
+
+            document.getElementById('actionsPanel').style.display = 'flex';
+        }
+
+        function makeDecision(decision) {
+            if (decisionMade) return;
+            decisionMade = true;
+
+            const tx = transactions[currentIndex];
+            const isCorrect = (decision === 'block' && tx.isFraud) || (decision === 'allow' && !tx.isFraud);
+
+            if (isCorrect) {
+                score += 100;
+            } else {
+                reputation = Math.max(0, reputation - 15);
+                updateReputationDisplay();
+            }
+
+            document.getElementById('score').textContent = score;
+
+            const title = document.getElementById('resultTitle');
+            const text = document.getElementById('resultText');
+
+            if (isCorrect) {
+                title.innerHTML = '✅ Верно!';
+                title.className = 'result-correct';
+                text.textContent = tx.isFraud ? 'Мошенничество успешно обнаружено!' : 'Легитимная транзакция пропущена правильно.';
+            } else {
+                title.innerHTML = '❌ Ошибка!';
+                title.className = 'result-wrong';
+                text.textContent = tx.isFraud ? 'Это было мошенничество! Нужно было заблокировать. Репутация -15%.' : 'Транзакция была легитимной. Не нужно было блокировать. Репутация -15%.';
+            }
+
+            document.getElementById('actionsPanel').style.display = 'none';
+            document.getElementById('resultOverlay').classList.add('active');
+        }
+
+        function handleContinue() {
+            document.getElementById('resultOverlay').classList.remove('active');
+
+            if (reputation <= 0 && !isFinal) {
+                showGameOver();
+                return;
+            }
+
+            if (isFinal) {
+                restartGame();
+            } else {
+                currentIndex++;
+                loadTransaction(currentIndex);
+            }
+        }
+
+        function showFinalResult() {
+            isFinal = true;
+            const title = document.getElementById('resultTitle');
+            const text = document.getElementById('resultText');
+            const continueBtn = document.getElementById('continueBtn');
+
+            title.innerHTML = '🏁 Симуляция окончена!';
+            title.className = '';
+            text.textContent = `Твой итоговый счёт: ${score}. Репутация: ${reputation}%`;
+            continueBtn.textContent = 'Пройти заново';
+            continueBtn.className = 'btn-restart';
+
+            document.getElementById('actionsPanel').style.display = 'none';
+            document.getElementById('resultOverlay').classList.add('active');
+        }
+
+        function showGameOver() {
+            isFinal = true;
+            const title = document.getElementById('resultTitle');
+            const text = document.getElementById('resultText');
+            const continueBtn = document.getElementById('continueBtn');
+
+            title.innerHTML = '💼 Ты уволен!';
+            title.className = 'result-wrong';
+            text.textContent = `Твоя репутация упала до 0%. Итоговый счёт: ${score}.`;
+            continueBtn.textContent = 'Пройти заново';
+            continueBtn.className = 'btn-restart';
+
+            document.getElementById('actionsPanel').style.display = 'none';
+            document.getElementById('resultOverlay').classList.add('active');
+        }
+
+        function restartGame() {
+            currentIndex = 0;
+            score = 0;
+            reputation = 100;
+            isFinal = false;
+            document.getElementById('score').textContent = '0';
+            updateReputationDisplay();
+            const continueBtn = document.getElementById('continueBtn');
+            continueBtn.textContent = 'Продолжить';
+            continueBtn.className = 'btn-continue';
+            loadTransaction(0);
+        }
+    </script>
+</body>
+</html>
